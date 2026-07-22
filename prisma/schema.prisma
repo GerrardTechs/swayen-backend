@@ -1,0 +1,150 @@
+// ============================================================
+// Swayen Backend - Prisma Schema
+// Sistem manajemen waktu berbasis energi & momentum (5 Langkah)
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------------------------------
+// ENUMS
+// ------------------------------------------------------------
+
+enum TimeBoxStatus {
+  COMPLETED
+  INTERRUPTED
+}
+
+enum CoinTransactionType {
+  EARNED
+  SPENT
+}
+
+// ------------------------------------------------------------
+// MODELS
+// ------------------------------------------------------------
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  lastActiveAt DateTime @default(now()) @map("last_active_at")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  refreshTokens    RefreshToken[]
+  nightPlanners    NightPlanner[]
+  timeBoxSessions  TimeBoxSession[]
+  swayenCoin       SwayenCoin?
+  coinTransactions CoinTransaction[]
+  hobbyShortcuts   HobbyShortcut[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String   @map("user_id")
+  expiresAt DateTime @map("expires_at")
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+// Langkah 1 & 5: Night Sentinel
+model NightPlanner {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  date        DateTime @db.Date
+  // Maks. 5 baris rencana disimpan sebagai native Postgres array
+  tasks       String[]
+  isCompleted Boolean  @default(false) @map("is_completed")
+  missedCount Int      @default(0) @map("missed_count")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, date])
+  @@index([userId])
+  @@map("night_planners")
+}
+
+// Langkah 3: TimeBox System (juga menangani Wuxiu Nap / Langkah 2 via durationMinutes=20)
+model TimeBoxSession {
+  id              String        @id @default(uuid())
+  userId          String        @map("user_id")
+  durationMinutes Int           @map("duration_minutes")
+  status          TimeBoxStatus @default(INTERRUPTED)
+  isWuxiuNap      Boolean       @default(false) @map("is_wuxiu_nap")
+  startedAt       DateTime      @default(now()) @map("started_at")
+  endedAt         DateTime?     @map("ended_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("timebox_sessions")
+}
+
+// Langkah 4: Swayen Wallet
+model SwayenCoin {
+  id        String   @id @default(uuid())
+  userId    String   @unique @map("user_id")
+  balance   Int      @default(0)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("swayen_coins")
+}
+
+model CoinTransaction {
+  id           String              @id @default(uuid())
+  userId       String              @map("user_id")
+  type         CoinTransactionType
+  amount       Int
+  activityName String              @map("activity_name")
+  createdAt    DateTime            @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("coin_transactions")
+}
+
+// Langkah 4: Quick-Start Hobbies
+model HobbyShortcut {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  title           String
+  durationMinutes Int      @map("duration_minutes")
+  deepLinkUrl     String?  @map("deep_link_url")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("hobby_shortcuts")
+}
+
+// Daily Quotes
+model DailyQuote {
+  id       String   @id @default(uuid())
+  quote    String   @db.Text
+  author   String?
+  source   String?
+  showDate DateTime @unique @db.Date @map("show_date")
+
+  @@map("daily_quotes")
+}

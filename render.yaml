@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: swayen-backend
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm install && npm run render-build
+    startCommand: npm run start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_PREFIX
+        value: /api/v1
+      - key: DATABASE_URL
+        sync: false # isi manual di dashboard — connection string Postgres dari Neon (branch production)
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_ACCESS_EXPIRES_IN
+        value: 15m
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 7d
+      - key: CORS_ORIGIN
+        sync: false # isi manual — domain frontend kamu (mis. https://swayen.vercel.app)
+    healthCheckPath: /health
