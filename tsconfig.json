@@ -14,7 +14,7 @@
     "sourceMap": true,
     "paths": {
       "*": ["./*"],
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src/**/*.ts"],
