@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Backend API for Swayen - energy & momentum based time management app (5 Langkah / Konsep Swayen)",
   "main": "dist/server.js",
-  "type":"module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
