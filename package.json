@@ -8,7 +8,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "render-build": "npx prisma generate && npm run build && npx prisma migrate deploy",
+    "render-build": "chmod +x ./node_modules/.bin/prisma && npx prisma generate && npm run build && npx prisma migrate deploy",
     "prisma:generate": "npx prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
