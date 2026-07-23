@@ -1,7 +1,7 @@
 import express, { Application } from "express";
 import cors from "cors";
 import helmet from "helmet";
-import { env } from "./config/env";
+import { env } from "./config/env.js";
 import { generalRateLimiter } from "./middlewares/rateLimiter.middleware";
 import { notFoundHandler, errorHandler } from "./middlewares/error.middleware";
 import { apiRouter } from "./routes";
