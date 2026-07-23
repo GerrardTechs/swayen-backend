@@ -11,6 +11,15 @@ const quotes = [
   { quote: "Energi terbatas, prioritaskan yang paling penting dulu.", author: "Swayen Team", source: "Internal" },
   { quote: "Satu TimeBox selesai, satu langkah lebih dekat ke tujuanmu.", author: "Swayen Team", source: "Internal" },
   { quote: "Rencana malam yang sederhana lebih baik daripada rencana sempurna yang tak pernah dieksekusi.", author: "Swayen Team", source: "Internal" },
+  { quote: "Disiplin adalah memilih antara apa yang kamu inginkan sekarang dan apa yang paling kamu inginkan nanti.", author: "Abraham Lincoln", source: "Filosofi" },
+  { quote: "Fokus bukanlah tentang mengatakan ya, tapi tentang mengatakan tidak pada ratusan ide bagus lainnya.", author: "Steve Jobs", source: "Inovasi" },
+  { quote: "Waktu Anda terbatas, jangan buang waktu itu untuk menjalani hidup orang lain.", author: "Steve Jobs", source: "Motivasi" },
+  { quote: "Bukan karena hal-hal itu sulit kita tidak berani, tapi karena kita tidak berani maka hal-hal itu sulit.", author: "Seneca", source: "Stoikisme" },
+  { quote: "Sukses adalah jumlah dari usaha-usaha kecil yang diulangi hari demi hari.", author: "Robert Collier", source: "Pengembangan Diri" },
+  { quote: "Manajemen waktu sesungguhnya adalah manajemen energi dan fokus harianmu.", author: "Swayen Team", source: "Internal" },
+  { quote: "Setiap menit yang kamu gunakan dalam perencanaan menghemat sepuluh menit dalam eksekusi.", author: "Brian Tracy", source: "Produktivitas" },
+  { quote: "Jangan menunggu momen yang tepat, ambilah momen ini dan jadikan tepat.", author: "Swayen Mindset", source: "Internal" },
+  { quote: "Ketenangan pikiran lahir dari persiapan malam yang terarah.", author: "Night Sentinel", source: "Swayen" },
 ];
 
 async function main() {

@@ -1,9 +1,7 @@
 import { prisma } from "../../config/prisma";
 
 function toDateOnly(date: Date): Date {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  return d;
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 }
 
 function dayOfYear(date: Date): number {

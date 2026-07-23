@@ -22,5 +22,12 @@ exports.nightPlannerController = {
         const plan = await nightPlanner_service_1.nightPlannerService.complete(userId, id);
         return (0, ApiResponse_1.sendSuccess)(res, plan, "Rencana malam ditandai selesai");
     }),
+    toggleTask: (0, asyncHandler_1.asyncHandler)(async (req, res) => {
+        const userId = req.user.id;
+        const { id, taskIndex } = req.params;
+        const { completed } = req.body;
+        const plan = await nightPlanner_service_1.nightPlannerService.toggleTask(userId, id, Number(taskIndex), completed);
+        return (0, ApiResponse_1.sendSuccess)(res, plan, "Status task berhasil diperbarui");
+    }),
 };
 //# sourceMappingURL=nightPlanner.controller.js.map

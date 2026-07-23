@@ -5,7 +5,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "./node_modules/.bin/tsc",
+    "build": "tsc",
     "start": "node dist/server.js",
     "render-build": "chmod +x ./node_modules/.bin/* && npx prisma generate && echo '--- INSTALLED TS VERSION ---' && cat node_modules/typescript/package.json | grep version && ./node_modules/.bin/tsc --version && npm run build && npx prisma migrate deploy",
     "prisma:generate": "npx prisma generate",

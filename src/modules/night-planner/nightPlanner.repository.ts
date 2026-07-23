@@ -17,19 +17,57 @@ export const nightPlannerRepository = {
     return prisma.nightPlanner.findUnique({ where: { id } });
   },
 
-  upsertToday(userId: string, date: Date, tasks: string[], missedCount: number) {
+  async upsertToday(userId: string, date: Date, tasks: string[], missedCount: number) {
     const dateOnly = toDateOnly(date);
+    const existing = await prisma.nightPlanner.findUnique({
+      where: { userId_date: { userId, date: dateOnly } },
+    });
+
+    const completedTasks = tasks.map((_, i) => existing?.completedTasks[i] ?? false);
+    const allDone = tasks.length > 0 && completedTasks.every((done, i) => !tasks[i]?.trim() || done);
+
     return prisma.nightPlanner.upsert({
       where: { userId_date: { userId, date: dateOnly } },
-      update: { tasks },
-      create: { userId, date: dateOnly, tasks, missedCount },
+      update: { tasks, completedTasks, isCompleted: allDone },
+      create: { userId, date: dateOnly, tasks, completedTasks, isCompleted: allDone, missedCount },
     });
   },
 
   markCompleted(id: string) {
     return prisma.nightPlanner.update({
       where: { id },
-      data: { isCompleted: true },
+      data: { isCompleted: true, missedCount: 0 },
+    });
+  },
+
+  markCompletedWithTasks(id: string, completedTasks: boolean[]) {
+    return prisma.nightPlanner.update({
+      where: { id },
+      data: { isCompleted: true, missedCount: 0, completedTasks },
+    });
+  },
+
+  toggleTaskCompletion(id: string, taskIndex: number, completed: boolean) {
+    return prisma.$transaction(async (tx) => {
+      const plan = await tx.nightPlanner.findUnique({ where: { id } });
+      if (!plan) return null;
+
+      const completedTasks = plan.tasks.map((_, i) => {
+        const prev = plan.completedTasks[i] ?? false;
+        return i === taskIndex ? completed : prev;
+      });
+
+      const allDone =
+        plan.tasks.length > 0 && completedTasks.every((done, i) => !plan.tasks[i]?.trim() || done);
+
+      return tx.nightPlanner.update({
+        where: { id },
+        data: {
+          completedTasks,
+          isCompleted: allDone,
+          ...(allDone ? { missedCount: 0 } : {}),
+        },
+      });
     });
   },
 

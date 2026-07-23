@@ -19,4 +19,15 @@ export const completeNightPlanSchema = z.object({
   }),
 });
 
+export const toggleNightTaskSchema = z.object({
+  body: z.object({
+    completed: z.boolean(),
+  }),
+  query: z.object({}).optional(),
+  params: z.object({
+    id: z.string().uuid("ID rencana tidak valid"),
+    taskIndex: z.coerce.number().int().min(0).max(4),
+  }),
+});
+
 export type CreateNightPlanInput = z.infer<typeof createNightPlanSchema>["body"];

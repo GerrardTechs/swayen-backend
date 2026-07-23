@@ -3,9 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.systemRepository = void 0;
 const prisma_1 = require("../../config/prisma");
 function toDateOnly(date) {
-    const d = new Date(date);
-    d.setHours(0, 0, 0, 0);
-    return d;
+    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 }
 function dayOfYear(date) {
     const start = new Date(date.getFullYear(), 0, 0);

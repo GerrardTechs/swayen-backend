@@ -43,7 +43,8 @@ export const systemService = {
     if (inactiveDays >= INACTIVITY_TIER_H7_DAYS) reengagementTier = "H7";
     else if (inactiveDays >= INACTIVITY_TIER_H3_DAYS) reengagementTier = "H3";
 
-    const missedNightCount = latestNightPlan?.missedCount ?? 0;
+    const missedNightCount =
+      latestNightPlan?.isCompleted ? 0 : (latestNightPlan?.missedCount ?? 0);
     const shouldReduceNightPlanLoad = missedNightCount >= MISSED_NIGHT_THRESHOLD;
 
     return {

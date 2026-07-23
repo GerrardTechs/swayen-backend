@@ -16,6 +16,11 @@ exports.timeboxController = {
         const session = await timebox_service_1.timeboxService.startWuxiuNap(userId);
         return (0, ApiResponse_1.sendSuccess)(res, session, "Sesi Wuxiu Nap (Low Battery) dimulai", 201);
     }),
+    getActive: (0, asyncHandler_1.asyncHandler)(async (req, res) => {
+        const userId = req.user.id;
+        const session = await timebox_service_1.timeboxService.getActiveSession(userId);
+        return (0, ApiResponse_1.sendSuccess)(res, session, "Sesi aktif berhasil diambil");
+    }),
     finish: (0, asyncHandler_1.asyncHandler)(async (req, res) => {
         const userId = req.user.id;
         const { sessionId, status } = req.body;

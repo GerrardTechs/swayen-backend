@@ -8,6 +8,7 @@ const router = Router();
 
 router.use(authenticate);
 
+router.get("/active", timeboxController.getActive);
 router.post("/start", validate(startTimeBoxSchema), timeboxController.start);
 router.post("/finish", validate(finishTimeBoxSchema), timeboxController.finish);
 router.post("/wuxiu", validate(startWuxiuSchema), timeboxController.wuxiu);

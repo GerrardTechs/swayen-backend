@@ -17,6 +17,12 @@ export const timeboxController = {
     return sendSuccess(res, session, "Sesi Wuxiu Nap (Low Battery) dimulai", 201);
   }),
 
+  getActive: asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.user!.id;
+    const session = await timeboxService.getActiveSession(userId);
+    return sendSuccess(res, session, "Sesi aktif berhasil diambil");
+  }),
+
   finish: asyncHandler(async (req: Request, res: Response) => {
     const userId = req.user!.id;
     const { sessionId, status } = req.body;

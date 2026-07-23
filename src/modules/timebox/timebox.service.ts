@@ -4,9 +4,24 @@ import { timeboxRepository } from "./timebox.repository";
 import { swayenService } from "../swayen/swayen.service";
 
 const WUXIU_NAP_DURATION_MINUTES = 20;
-const REWARD_COIN_PER_TIMEBOX = 1;
+
+export function calculateRewardCoins(durationMinutes: number, isWuxiuNap: boolean): number {
+  if (isWuxiuNap) return 0;
+  if (durationMinutes >= 90) return 4;
+  if (durationMinutes >= 60) return 3;
+  if (durationMinutes >= 45) return 2;
+  if (durationMinutes >= 25) return 1;
+  return 1;
+}
 
 export const timeboxService = {
+  /**
+   * Ambil sesi aktif (jika ada)
+   */
+  async getActiveSession(userId: string) {
+    return timeboxRepository.findActiveSession(userId);
+  },
+
   /**
    * Mulai sesi fokus (TimeBox). Hanya boleh ada 1 sesi aktif per user —
    * ini yang jadi dasar "mengunci pemicu koin lain" selama timer berjalan,
@@ -33,8 +48,8 @@ export const timeboxService = {
 
   /**
    * Akhiri sesi (TimeBox biasa maupun Wuxiu Nap).
-   * Reward 1 Swayen Coin HANYA diberikan jika: status COMPLETED dan bukan Wuxiu Nap
-   * (nap adalah pemulihan energi, bukan aktivitas produktif yang diganjar koin).
+   * Reward Swayen Coin diberikan berdasarkan durasi jika status COMPLETED dan bukan Wuxiu Nap:
+   * 25m -> 1 coin, 45m -> 2 coins, 60m -> 3 coins, 90m -> 4 coins.
    */
   async finish(userId: string, sessionId: string, status: TimeBoxStatus) {
     const session = await timeboxRepository.findById(sessionId);
@@ -45,13 +60,19 @@ export const timeboxService = {
 
     const finished = await timeboxRepository.finishSession(sessionId, status);
 
-    let rewarded = false;
+    let coinsEarned = 0;
     if (status === "COMPLETED" && !session.isWuxiuNap) {
-      await swayenService.earnCoins(userId, REWARD_COIN_PER_TIMEBOX, "TimeBox Selesai");
-      rewarded = true;
+      coinsEarned = calculateRewardCoins(session.durationMinutes, session.isWuxiuNap);
+      if (coinsEarned > 0) {
+        await swayenService.earnCoins(
+          userId,
+          coinsEarned,
+          `TimeBox ${session.durationMinutes}m Selesai`
+        );
+      }
     }
 
-    return { session: finished, coinsRewarded: rewarded ? REWARD_COIN_PER_TIMEBOX : 0 };
+    return { session: finished, coinsRewarded: coinsEarned };
   },
 
   listRecent(userId: string) {

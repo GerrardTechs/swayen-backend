@@ -10,5 +10,6 @@ router.use(auth_middleware_1.authenticate);
 router.post("/", (0, validate_middleware_1.validate)(nightPlanner_validation_1.createNightPlanSchema), nightPlanner_controller_1.nightPlannerController.create);
 router.get("/today", nightPlanner_controller_1.nightPlannerController.getToday);
 router.patch("/:id/complete", (0, validate_middleware_1.validate)(nightPlanner_validation_1.completeNightPlanSchema), nightPlanner_controller_1.nightPlannerController.complete);
+router.patch("/:id/tasks/:taskIndex", (0, validate_middleware_1.validate)(nightPlanner_validation_1.toggleNightTaskSchema), nightPlanner_controller_1.nightPlannerController.toggleTask);
 exports.default = router;
 //# sourceMappingURL=nightPlanner.routes.js.map

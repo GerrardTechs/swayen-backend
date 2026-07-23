@@ -7,6 +7,14 @@ function toUTCDateOnly(date: Date): Date {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
 }
 
+function getNightCycleDate(now = new Date()): Date {
+  const d = new Date(now);
+  if (d.getHours() < 18) {
+    d.setDate(d.getDate() - 1);
+  }
+  return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+}
+
 function isYesterday(recordDate: Date, today: Date): boolean {
   const diff = Math.round(
     (toUTCDateOnly(today).getTime() - toUTCDateOnly(recordDate).getTime()) / ONE_DAY_MS
@@ -17,11 +25,10 @@ function isYesterday(recordDate: Date, today: Date): boolean {
 export const nightPlannerService = {
   /**
    * Buat / update rencana malam hari ini (max 5 baris, divalidasi di layer validation).
-   * Sekaligus menghitung missedCount: jika record kemarin tidak ada / belum completed,
-   * missedCount kemarin + 1 dibawa ke record hari ini. Jika kemarin completed, reset ke 0.
+   * Siklus malam di-reset setiap jam 6 sore (18:00).
    */
   async createOrUpdateToday(userId: string, tasks: string[]) {
-    const today = new Date();
+    const today = getNightCycleDate();
     const yesterday = new Date(today.getTime() - ONE_DAY_MS);
 
     const existingToday = await nightPlannerRepository.findByUserAndDate(userId, today);
@@ -30,10 +37,15 @@ export const nightPlannerService = {
     if (!existingToday) {
       const yesterdayRecord = await nightPlannerRepository.findByUserAndDate(userId, yesterday);
       if (yesterdayRecord && isYesterday(yesterdayRecord.date, today)) {
-        missedCount = yesterdayRecord.isCompleted ? 0 : yesterdayRecord.missedCount + 1;
+        if (yesterdayRecord.isCompleted) {
+          missedCount = 0;
+        } else if (yesterdayRecord.tasks.length > 0) {
+          missedCount = yesterdayRecord.missedCount + 1;
+        } else {
+          missedCount = 0;
+        }
       } else {
-        // Tidak ada record kemarin sama sekali → dianggap 1 malam terlewat
-        missedCount = 1;
+        missedCount = 0;
       }
     }
 
@@ -41,11 +53,10 @@ export const nightPlannerService = {
   },
 
   /**
-   * Ambil rencana hari ini beserta status missedCount dan streak (jumlah hari
-   * berturut-turut isCompleted = true, dihitung mundur dari kemarin/hari ini).
+   * Ambil rencana hari ini (siklus bergeser pada jam 18:00)
    */
   async getToday(userId: string) {
-    const today = new Date();
+    const today = getNightCycleDate();
     const plan = await nightPlannerRepository.findByUserAndDate(userId, today);
     const recent = await nightPlannerRepository.findRecent(userId, 30);
 
@@ -60,7 +71,7 @@ export const nightPlannerService = {
 
     return {
       plan,
-      missedNightCount: plan?.missedCount ?? 0,
+      missedNightCount: plan?.isCompleted ? 0 : (plan?.missedCount ?? 0),
       streak,
     };
   },
@@ -70,8 +81,22 @@ export const nightPlannerService = {
 
     if (!plan) throw ApiError.notFound("Rencana malam tidak ditemukan");
     if (plan.userId !== userId) throw ApiError.forbidden("Rencana ini bukan milik Anda");
-    if (plan.isCompleted) throw ApiError.conflict("Rencana sudah ditandai selesai");
 
-    return nightPlannerRepository.markCompleted(planId);
+    const completedTasks = plan.tasks.map(() => true);
+    return nightPlannerRepository.markCompletedWithTasks(planId, completedTasks);
+  },
+
+  async toggleTask(userId: string, planId: string, taskIndex: number, completed: boolean) {
+    const plan = await nightPlannerRepository.findById(planId);
+
+    if (!plan) throw ApiError.notFound("Rencana malam tidak ditemukan");
+    if (plan.userId !== userId) throw ApiError.forbidden("Rencana ini bukan milik Anda");
+    if (taskIndex < 0 || taskIndex >= plan.tasks.length) {
+      throw ApiError.badRequest("Indeks task tidak valid");
+    }
+
+    const updated = await nightPlannerRepository.toggleTaskCompletion(planId, taskIndex, completed);
+    if (!updated) throw ApiError.notFound("Rencana malam tidak ditemukan");
+    return updated;
   },
 };

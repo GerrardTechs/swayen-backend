@@ -1,12 +1,31 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.timeboxService = void 0;
+exports.calculateRewardCoins = calculateRewardCoins;
 const ApiError_1 = require("../../utils/ApiError");
 const timebox_repository_1 = require("./timebox.repository");
 const swayen_service_1 = require("../swayen/swayen.service");
 const WUXIU_NAP_DURATION_MINUTES = 20;
-const REWARD_COIN_PER_TIMEBOX = 1;
+function calculateRewardCoins(durationMinutes, isWuxiuNap) {
+    if (isWuxiuNap)
+        return 0;
+    if (durationMinutes >= 90)
+        return 4;
+    if (durationMinutes >= 60)
+        return 3;
+    if (durationMinutes >= 45)
+        return 2;
+    if (durationMinutes >= 25)
+        return 1;
+    return 1;
+}
 exports.timeboxService = {
+    /**
+     * Ambil sesi aktif (jika ada)
+     */
+    async getActiveSession(userId) {
+        return timebox_repository_1.timeboxRepository.findActiveSession(userId);
+    },
     /**
      * Mulai sesi fokus (TimeBox). Hanya boleh ada 1 sesi aktif per user —
      * ini yang jadi dasar "mengunci pemicu koin lain" selama timer berjalan,
@@ -31,8 +50,8 @@ exports.timeboxService = {
     },
     /**
      * Akhiri sesi (TimeBox biasa maupun Wuxiu Nap).
-     * Reward 1 Swayen Coin HANYA diberikan jika: status COMPLETED dan bukan Wuxiu Nap
-     * (nap adalah pemulihan energi, bukan aktivitas produktif yang diganjar koin).
+     * Reward Swayen Coin diberikan berdasarkan durasi jika status COMPLETED dan bukan Wuxiu Nap:
+     * 25m -> 1 coin, 45m -> 2 coins, 60m -> 3 coins, 90m -> 4 coins.
      */
     async finish(userId, sessionId, status) {
         const session = await timebox_repository_1.timeboxRepository.findById(sessionId);
@@ -43,12 +62,14 @@ exports.timeboxService = {
         if (session.endedAt)
             throw ApiError_1.ApiError.conflict("Sesi ini sudah diakhiri sebelumnya");
         const finished = await timebox_repository_1.timeboxRepository.finishSession(sessionId, status);
-        let rewarded = false;
+        let coinsEarned = 0;
         if (status === "COMPLETED" && !session.isWuxiuNap) {
-            await swayen_service_1.swayenService.earnCoins(userId, REWARD_COIN_PER_TIMEBOX, "TimeBox Selesai");
-            rewarded = true;
+            coinsEarned = calculateRewardCoins(session.durationMinutes, session.isWuxiuNap);
+            if (coinsEarned > 0) {
+                await swayen_service_1.swayenService.earnCoins(userId, coinsEarned, `TimeBox ${session.durationMinutes}m Selesai`);
+            }
         }
-        return { session: finished, coinsRewarded: rewarded ? REWARD_COIN_PER_TIMEBOX : 0 };
+        return { session: finished, coinsRewarded: coinsEarned };
     },
     listRecent(userId) {
         return timebox_repository_1.timeboxRepository.listRecent(userId);

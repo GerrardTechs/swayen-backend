@@ -23,4 +23,17 @@ export const nightPlannerController = {
     const plan = await nightPlannerService.complete(userId, id);
     return sendSuccess(res, plan, "Rencana malam ditandai selesai");
   }),
+
+  toggleTask: asyncHandler(async (req: Request, res: Response) => {
+    const userId = req.user!.id;
+    const { id, taskIndex } = req.params;
+    const { completed } = req.body;
+    const plan = await nightPlannerService.toggleTask(
+      userId,
+      id,
+      Number(taskIndex),
+      completed,
+    );
+    return sendSuccess(res, plan, "Status task berhasil diperbarui");
+  }),
 };

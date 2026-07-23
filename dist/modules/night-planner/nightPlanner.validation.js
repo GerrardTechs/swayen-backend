@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.completeNightPlanSchema = exports.createNightPlanSchema = void 0;
+exports.toggleNightTaskSchema = exports.completeNightPlanSchema = exports.createNightPlanSchema = void 0;
 const zod_1 = require("zod");
 exports.createNightPlanSchema = zod_1.z.object({
     body: zod_1.z.object({
@@ -17,6 +17,16 @@ exports.completeNightPlanSchema = zod_1.z.object({
     query: zod_1.z.object({}).optional(),
     params: zod_1.z.object({
         id: zod_1.z.string().uuid("ID rencana tidak valid"),
+    }),
+});
+exports.toggleNightTaskSchema = zod_1.z.object({
+    body: zod_1.z.object({
+        completed: zod_1.z.boolean(),
+    }),
+    query: zod_1.z.object({}).optional(),
+    params: zod_1.z.object({
+        id: zod_1.z.string().uuid("ID rencana tidak valid"),
+        taskIndex: zod_1.z.coerce.number().int().min(0).max(4),
     }),
 });
 //# sourceMappingURL=nightPlanner.validation.js.map
